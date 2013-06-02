@@ -1,10 +1,12 @@
 package apache.ooffice.gsoc.cmisucp.ucp;
 
+import apache.ooffice.gsoc.cmisucp.ucp.unoobjects.CMISContentIdentifier;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.ucb.XContentIdentifier;
 
 
 public final class CMISContentProvider extends WeakBase
@@ -86,7 +88,8 @@ public final class CMISContentProvider extends WeakBase
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        XContentIdentifier xContentIdentifier = new CMISContentIdentifier(m_xContext, ContentId);
+        return xContentIdentifier;
     }
 
     // com.sun.star.ucb.XContentProvider:
