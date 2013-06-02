@@ -3,6 +3,7 @@ package apache.ooffice.gsoc.cmisucp.ucp.unoobjects;
 import apache.ooffice.gsoc.cmisucp.cmis.RepositoryConnect;
 import com.sun.star.beans.IllegalTypeException;
 import com.sun.star.beans.NotRemoveableException;
+import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyExistException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertiesChangeListener;
@@ -14,13 +15,19 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.ucb.Command;
 import com.sun.star.ucb.CommandAbortedException;
 import com.sun.star.ucb.ContentInfo;
+import com.sun.star.ucb.UnsupportedCommandException;
 import com.sun.star.ucb.XCommandEnvironment;
 import com.sun.star.ucb.XCommandInfoChangeListener;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
 import com.sun.star.uno.Exception;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 
 
 public final class CMISContent extends WeakBase
@@ -39,8 +46,10 @@ public final class CMISContent extends WeakBase
     private static final String m_implementationName = CMISContent.class.getName();
     private XContentIdentifier contentID;
     private String relative_path;
+    private Map<String,String> properties;
+    private Session session;
+    private CmisObject content;
     
-
     /**
      *
      * @param context
@@ -71,13 +80,22 @@ public final class CMISContent extends WeakBase
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
         String type;
-        RepositoryConnect rc = new RepositoryConnect();
-        rc.connect();
-        Session session = rc.getConnectedSession();
-        CmisObject obj = session.getObjectByPath(relative_path);
-        type = obj.getType().getDisplayName();
+        
+        if(session==null)
+            connectToRepository();
+        
+            
+        type = content.getType().getDisplayName();
         
         return type;
+    }
+    
+    private void connectToRepository()
+    {
+        RepositoryConnect rc = new RepositoryConnect();
+        rc.connect();
+        session = rc.getConnectedSession();
+        content = session.getObjectByPath(relative_path);
     }
 
     public void addContentEventListener(com.sun.star.ucb.XContentEventListener Listener)
@@ -103,9 +121,65 @@ public final class CMISContent extends WeakBase
     }
 
     public Object execute(Command arg0, int arg1, XCommandEnvironment arg2) throws Exception, CommandAbortedException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+         //To change body of generated methods, choose Tools | Templates.
+        if(arg0.Name.equals("getPropertyValues"))
+        {
+            obtainProperties();
+            return properties;
+        }
+        else if(arg0.Name.equals("getCommandInfo"))
+        {
+            //to-do
+        }
+        else if(arg0.Name.equals("getPropertySetInfo"))
+        {
+            //to-do
+        }
+        else if(arg0.Name.equals("setPropertyValues"))
+        {
+            //to-do
+        }
+        else if(arg0.Name.equals("open"))
+        {
+            if(content==null)
+                connectToRepository();
+            Document doc = (Document)content;
+            InputStream stream = doc.getContentStream().getStream();
+            return stream;
+        }
+        else if(arg0.Name.equals("delete"))
+        {
+            //to-do
+        }
+        else if(arg0.Name.equals("insert"))
+        {
+            //to-do
+        }
+        else if(arg0.Name.equals("transfer"))
+        {
+            //to-do
+        }
+        else
+            throw new UnsupportedCommandException(arg0.Name+" Not Supported");
+        
+        return null;
     }
 
+    private void obtainProperties()throws NullPointerException
+    {
+        properties = new HashMap<String,String>();
+        if(session==null)
+            connectToRepository();
+        properties.put("Title", content.getName());
+        properties.put("IsFolder", (content.getType().getDisplayName().equals("cmis:folder"))?"True":"False");
+        properties.put("IsDocument", (content.getType().getDisplayName().equals("openDocument"))?"True":"False");
+        properties.put("DateCreated", content.getCreationDate().toString());
+        properties.put("DateModified", content.getLastModificationDate().toString());
+        properties.put("Size", content.getPropertyValue(PropertyIds.CONTENT_STREAM_LENGTH).toString());
+        properties.put("MediaType", content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString());
+        properties.put("ContentType", content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString());
+        
+    }
     public void abort(int arg0) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
