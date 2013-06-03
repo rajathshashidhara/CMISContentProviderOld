@@ -12,6 +12,7 @@ import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.NoSupportException;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.WeakBase;
+import com.sun.star.sdbc.XRow;
 import com.sun.star.ucb.Command;
 import com.sun.star.ucb.CommandAbortedException;
 import com.sun.star.ucb.ContentInfo;
@@ -21,8 +22,11 @@ import com.sun.star.ucb.XCommandInfoChangeListener;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
 import com.sun.star.uno.Exception;
+import com.sun.star.util.Date;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
@@ -122,10 +126,13 @@ public final class CMISContent extends WeakBase
 
     public Object execute(Command arg0, int arg1, XCommandEnvironment arg2) throws Exception, CommandAbortedException {
          //To change body of generated methods, choose Tools | Templates.
+        
         if(arg0.Name.equals("getPropertyValues"))
         {
-            obtainProperties();
-            return properties;
+            com.sun.star.beans.Property pRequest[];
+            pRequest = (com.sun.star.beans.Property[]) (arg0.Argument);
+            return obtainProperties(pRequest);
+            
         }
         else if(arg0.Name.equals("getCommandInfo"))
         {
@@ -141,11 +148,13 @@ public final class CMISContent extends WeakBase
         }
         else if(arg0.Name.equals("open"))
         {
-            if(content==null)
-                connectToRepository();
-            Document doc = (Document)content;
-            InputStream stream = doc.getContentStream().getStream();
-            return stream;
+            //Wrong Implementation
+            
+            //if(content==null)
+            //    connectToRepository();
+            //Document doc = (Document)content;
+            //InputStream stream = doc.getContentStream().getStream();
+            //return stream;
         }
         else if(arg0.Name.equals("delete"))
         {
@@ -165,20 +174,35 @@ public final class CMISContent extends WeakBase
         return null;
     }
 
-    private void obtainProperties()throws NullPointerException
+    private XRow obtainProperties(com.sun.star.beans.Property arr[])throws NullPointerException, UnsupportedCommandException
     {
-        properties = new HashMap<String,String>();
         if(session==null)
             connectToRepository();
-        properties.put("Title", content.getName());
-        properties.put("IsFolder", (content.getType().getDisplayName().equals("cmis:folder"))?"True":"False");
-        properties.put("IsDocument", (content.getType().getDisplayName().equals("openDocument"))?"True":"False");
-        properties.put("DateCreated", content.getCreationDate().toString());
-        properties.put("DateModified", content.getLastModificationDate().toString());
-        properties.put("Size", content.getPropertyValue(PropertyIds.CONTENT_STREAM_LENGTH).toString());
-        properties.put("MediaType", content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString());
-        properties.put("ContentType", content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString());
         
+        Map<String,Class> result = new HashMap<String,Class>();
+                
+        for(com.sun.star.beans.Property p:arr)
+        {
+            if(p.Name.equals("Title"))
+                result.put(content.getName(),String.class);
+            else if(p.Name.equals("IsFolder"))
+                result.put((content.getType().getDisplayName().equals("cmis:folder"))?"True":"False",Boolean.class);
+            else if(p.Name.equals("IsDocument"))
+                result.put((content.getType().getDisplayName().equals("openDocument"))?"True":"False", Boolean.class);
+            else if(p.Name.equals("DateCreated"))
+                result.put(content.getCreationDate().toString(), Date.class);
+            else if(p.Name.equals("DateModified"))
+                result.put(content.getCreationDate().toString(), Date.class);
+            else if(p.Name.equals("Size"))
+                result.put(content.getPropertyValue(PropertyIds.CONTENT_STREAM_LENGTH).toString(), Integer.class);
+            else if(p.Name.equals("MediaType"))
+                result.put(content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString(), String.class);
+            else if(p.Name.equals("ContentType"))
+                result.put(content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString(), String.class);
+            else
+                throw new UnsupportedCommandException(p.Name+" Not Supported");
+        }
+        return new CMISXRow(result);
     }
     public void abort(int arg0) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

@@ -9,6 +9,8 @@ import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public final class CMISContentProvider extends WeakBase
@@ -21,11 +23,12 @@ public final class CMISContentProvider extends WeakBase
     private static final String m_implementationName = CMISContentProvider.class.getName();
     private static final String[] m_serviceNames = {
         "com.sun.star.ucb.ContentProvider" };
-
+    private Map<String,XContent> cachedContent;
 
     public CMISContentProvider( XComponentContext context )
     {
         m_xContext = context;
+        cachedContent = new HashMap<String,XContent>();
     };
 
     public static XSingleComponentFactory __getComponentFactory( String sImplementationName ) {
@@ -102,10 +105,15 @@ public final class CMISContentProvider extends WeakBase
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
+        
+        if(cachedContent.containsKey(Identifier.getContentIdentifier()))
+            return cachedContent.get(Identifier.getContentIdentifier());
+        
         if(Identifier.getContentProviderScheme().equalsIgnoreCase("cmis"))
             if(Identifier.getContentIdentifier().startsWith("cmis://"))
             {
                 XContent xContent = new CMISContent(m_xContext, Identifier);
+                cachedContent.put(Identifier.getContentIdentifier(), xContent);
                 return xContent;
             }
  
