@@ -105,7 +105,8 @@ public final class CMISContentProvider extends WeakBase
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        
+        System.out.print("My UCP called");
+        System.out.print(Identifier.getContentIdentifier());
         if(cachedContent.containsKey(Identifier.getContentIdentifier()))
             return cachedContent.get(Identifier.getContentIdentifier());
         
