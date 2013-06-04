@@ -17,6 +17,7 @@ import com.sun.star.ucb.CommandAbortedException;
 import com.sun.star.ucb.ContentInfo;
 import com.sun.star.ucb.UnsupportedCommandException;
 import com.sun.star.ucb.XCommandEnvironment;
+import com.sun.star.ucb.XCommandInfo;
 import com.sun.star.ucb.XCommandInfoChangeListener;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
@@ -132,7 +133,8 @@ public final class CMISContent extends WeakBase
 
         else if(arg0.Name.equals("getCommandInfo"))
         {
-            //to-do
+            XCommandInfo command_info = new CMISXCommandInfo(m_xContext);
+            return command_info;
         }
         else if(arg0.Name.equals("getPropertySetInfo"))
         {
@@ -144,13 +146,7 @@ public final class CMISContent extends WeakBase
         }
         else if(arg0.Name.equals("open"))
         {
-            //Wrong Implementation
-            
-            //if(content==null)
-            //    connectToRepository();
-            //Document doc = (Document)content;
-            //InputStream stream = doc.getContentStream().getStream();
-            //return stream;
+            //to-do
         }
         else if(arg0.Name.equals("delete"))
         {
