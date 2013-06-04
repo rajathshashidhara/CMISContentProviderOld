@@ -194,23 +194,23 @@ public final class CMISContent extends WeakBase
             }
             else if(p.Name.equals("IsFolder"))
             {
-                //to-do
+                 result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else if(p.Name.equals("IsDocument"))                
             {
-                //to-do
+                result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else if(p.Name.equals("DateCreated"))      
             {
-                //to-do
+                result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else if(p.Name.equals("DateModified"))               
             {
-                //to-do
+                result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else if(p.Name.equals("Size"))
             {
-                //to-do
+                result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else if(p.Name.equals("MediaType"))
             {

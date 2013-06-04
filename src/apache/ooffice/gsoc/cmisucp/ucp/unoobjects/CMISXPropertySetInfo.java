@@ -1,6 +1,7 @@
 package apache.ooffice.gsoc.cmisucp.ucp.unoobjects;
 
 import com.sun.star.beans.Property;
+import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.WeakBase;
@@ -23,18 +24,23 @@ public final class CMISXPropertySetInfo extends WeakBase
         
         available_properties[1].Name = "IsFolder";
         available_properties[1].Type = Type.BOOLEAN;
+        available_properties[1].Attributes = PropertyAttribute.READONLY;
         
         available_properties[2].Name = "IsDocument";
         available_properties[2].Type = Type.BOOLEAN;
+        available_properties[2].Attributes = PropertyAttribute.READONLY;
         
         available_properties[3].Name = "DateCreated";
         available_properties[3].Type = Type.ANY;
+        available_properties[3].Attributes = PropertyAttribute.READONLY;
         
         available_properties[4].Name = "DateModified";
         available_properties[4].Type = Type.ANY;
+        available_properties[4].Attributes = PropertyAttribute.READONLY;
         
         available_properties[5].Name = "Size";
         available_properties[5].Type = Type.UNSIGNED_LONG;
+        available_properties[5].Attributes = PropertyAttribute.READONLY;
         
         available_properties[6].Name = "MediaType";
         available_properties[6].Type = Type.STRING;
