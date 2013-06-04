@@ -64,11 +64,30 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public byte getByte(int arg0) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        lastArg = arg0-1;  
+        try
+        {
+            byte b;
+            b = Byte.valueOf(ans.get(lastArg)).byteValue();
+            return b;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        }
     }
 
     public short getShort(int arg0) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        lastArg = arg0-1;  
+        try
+        {
+            short b = Short.valueOf(ans.get(lastArg)).shortValue();
+            return b;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        }
     }
 
     public int getInt(int arg0) throws SQLException {
@@ -88,15 +107,43 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public long getLong(int arg0) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        lastArg = arg0-1;  
+        try
+        {
+            long b;
+            b = Long.valueOf(ans.get(lastArg)).longValue();
+            return b;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        }
     }
 
     public float getFloat(int arg0) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        lastArg = arg0-1;  
+        try
+        {
+            float b = Float.valueOf(ans.get(lastArg)).floatValue();
+            return b;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        }
     }
 
     public double getDouble(int arg0) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        lastArg = arg0-1;  
+        try
+        {
+            int b = Integer.valueOf(ans.get(lastArg)).intValue();
+            return b;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        }
     }
 
     public byte[] getBytes(int arg0) throws SQLException {
@@ -104,7 +151,35 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public Date getDate(int arg0) throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        lastArg = arg0-1;
+        String s = ans.get(lastArg);
+        if(!s.startsWith("java.util.GregorianCalendar"))
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        else
+        {
+            short year;
+            year = Short.parseShort(s.substring(s.indexOf("YEAR")+5,s.indexOf("YEAR")+9));
+            short month;
+            try
+            {
+                month = Short.parseShort(s.substring(s.indexOf("MONTH")+6,s.indexOf("MONTH")+8));
+            }
+            catch(NumberFormatException e)
+            {
+                month = Short.parseShort(s.substring(s.indexOf("MONTH")+6,s.indexOf("MONTH")+7));
+            }
+            short day;
+            try
+            {
+                day = Short.parseShort(s.substring(s.indexOf("DAY_OF_MONTH")+13,s.indexOf("DAY_OF_MONTH")+15));
+            }
+            catch(NumberFormatException e)
+            {
+                day = Short.parseShort(s.substring(s.indexOf("DAY_OF_MONTH")+13,s.indexOf("DAY_OF_MONTH")+14));
+            }
+            Date d = new Date(day,month,year);
+            return d;
+        }
     }
 
     public Time getTime(int arg0) throws SQLException {

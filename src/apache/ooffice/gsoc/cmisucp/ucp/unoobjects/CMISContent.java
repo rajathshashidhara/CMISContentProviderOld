@@ -24,7 +24,6 @@ import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -46,7 +45,6 @@ public final class CMISContent extends WeakBase
     private static final String m_implementationName = CMISContent.class.getName();
     private XContentIdentifier contentID;
     private String relative_path;
-    private Map<String,String> properties;
     private Session session;
     private CmisObject content;
     
@@ -187,7 +185,7 @@ public final class CMISContent extends WeakBase
                 result.add(content.getType().getDisplayName().equals("cmis:folder")?"True":"False");
             else if(p.Name.equals("IsDocument"))                
                 result.add(content.getType().getDisplayName().equals("openDocument")?"True":"False");
-            else if(p.Name.equals("DateCreated"))                
+            else if(p.Name.equals("DateCreated"))      
                 result.add(content.getCreationDate().toString());
             else if(p.Name.equals("DateModified"))               
                 result.add(content.getCreationDate().toString());
