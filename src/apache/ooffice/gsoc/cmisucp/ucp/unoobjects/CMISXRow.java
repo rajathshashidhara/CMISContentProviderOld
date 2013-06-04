@@ -14,7 +14,7 @@ import com.sun.star.sdbc.XRef;
 import com.sun.star.util.Date;
 import com.sun.star.util.DateTime;
 import com.sun.star.util.Time;
-import java.util.Map;
+import java.util.List;
 
 /**
  *
@@ -22,13 +22,16 @@ import java.util.Map;
  */
 public class CMISXRow implements com.sun.star.sdbc.XRow{
 
-    private Map<String, Class> answer;
+    //private Map<String, Class> answer;
+    //private Collection<Class> checkCompatibility;
+    //private Set<String> ans;
+    private List<String> ans;
     private static int lastArg;
     private static boolean lastWasNull = true;
     
-    CMISXRow(Map<String, Class> result) {
+    CMISXRow(List<String> result) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        answer = result;
+        ans = result;
     }
     
     public boolean wasNull() throws SQLException {
@@ -38,32 +41,25 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
 
     public String getString(int arg0) throws SQLException {
       //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-      lastArg = arg0-1;  
-      if(answer.get(answer.keySet().toArray()[lastArg].toString())== String.class)
-      {
-          if(answer.keySet().toArray()[lastArg]==null)
-              lastWasNull = true;
-          else
-              lastWasNull = false;
-          return answer.keySet().toArray()[lastArg].toString();
-      }
-      else
-          throw new UnsupportedOperationException("Datatype Mismatch");
+      lastArg = arg0-1;
+      
+      return ans.get(lastArg);
+      //else
+      //    throw new UnsupportedOperationException("Datatype Mismatch");
       
     }
 
     public boolean getBoolean(int arg0) throws SQLException {
       lastArg = arg0-1;  
-      if(answer.get(answer.keySet().toArray()[lastArg].toString())== Boolean.class)
+      try
       {
-          if(answer.keySet().toArray()[lastArg]==null)
-              lastWasNull = true;
-          else
-              lastWasNull = false;
-          return Boolean.valueOf(answer.keySet().toArray()[lastArg].toString());
+          boolean b = Boolean.valueOf(ans.get(lastArg)).booleanValue();
+          return b;
       }
-      else
+      catch(NumberFormatException e)
+      {
           throw new UnsupportedOperationException("Datatype Mismatch");
+      }
       
     }
 
@@ -77,17 +73,17 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
 
     public int getInt(int arg0) throws SQLException {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
         lastArg = arg0-1;  
-      if(answer.get(answer.keySet().toArray()[lastArg].toString())== Integer.class)
-      {
-          if(answer.keySet().toArray()[lastArg]==null)
-              lastWasNull = true;
-          else
-              lastWasNull = false;
-          return Integer.valueOf(answer.keySet().toArray()[lastArg].toString());
-      }
-      else
-          throw new UnsupportedOperationException("Datatype Mismatch");
+        try
+        {
+            int b = Integer.valueOf(ans.get(lastArg)).intValue();
+            return b;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new UnsupportedOperationException("Datatype Mismatch");
+        }
       
     }
 
@@ -146,5 +142,5 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     public XArray getArray(int arg0) throws SQLException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+  
 }

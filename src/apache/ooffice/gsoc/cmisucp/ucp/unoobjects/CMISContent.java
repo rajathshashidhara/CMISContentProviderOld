@@ -12,7 +12,6 @@ import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.NoSupportException;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.WeakBase;
-import com.sun.star.sdbc.XRow;
 import com.sun.star.ucb.Command;
 import com.sun.star.ucb.CommandAbortedException;
 import com.sun.star.ucb.ContentInfo;
@@ -23,8 +22,8 @@ import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
-import com.sun.star.util.Date;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -126,17 +125,13 @@ public final class CMISContent extends WeakBase
 
     public Object execute(Command arg0, int arg1, XCommandEnvironment arg2) throws Exception, CommandAbortedException {
          //To change body of generated methods, choose Tools | Templates.
-        System.out.println("InSide Execute");
         if(arg0.Name.equals("getPropertyValues"))
         {
             com.sun.star.beans.Property pRequest[];
-            System.out.println(AnyConverter.isArray(arg0.Argument));
             pRequest = (Property[]) AnyConverter.toArray(arg0.Argument);
-            //System.out.println(AnyConverter.getType(arg0.Argument).getTypeName());
-            //
             return obtainProperties(pRequest);
-//            return null;
         }
+
         else if(arg0.Name.equals("getCommandInfo"))
         {
             //to-do
@@ -182,26 +177,26 @@ public final class CMISContent extends WeakBase
         if(session==null)
             connectToRepository();
         
-        Map<String,Class> result = new HashMap<String,Class>();
+        List<String> result = new ArrayList<String>();
                 
         for(com.sun.star.beans.Property p:arr)
         {
             if(p.Name.equals("Title"))
-                result.put(content.getName(),String.class);
+                result.add(content.getName());
             else if(p.Name.equals("IsFolder"))
-                result.put((content.getType().getDisplayName().equals("cmis:folder"))?"True":"False",Boolean.class);
-            else if(p.Name.equals("IsDocument"))
-                result.put((content.getType().getDisplayName().equals("openDocument"))?"True":"False", Boolean.class);
-            else if(p.Name.equals("DateCreated"))
-                result.put(content.getCreationDate().toString(), Date.class);
-            else if(p.Name.equals("DateModified"))
-                result.put(content.getCreationDate().toString(), Date.class);
+                result.add(content.getType().getDisplayName().equals("cmis:folder")?"True":"False");
+            else if(p.Name.equals("IsDocument"))                
+                result.add(content.getType().getDisplayName().equals("openDocument")?"True":"False");
+            else if(p.Name.equals("DateCreated"))                
+                result.add(content.getCreationDate().toString());
+            else if(p.Name.equals("DateModified"))               
+                result.add(content.getCreationDate().toString());
             else if(p.Name.equals("Size"))
-                result.put(content.getPropertyValue(PropertyIds.CONTENT_STREAM_LENGTH).toString(), Integer.class);
+                result.add(content.getPropertyValue(PropertyIds.CONTENT_STREAM_LENGTH).toString());
             else if(p.Name.equals("MediaType"))
-                result.put(content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString(), String.class);
+                result.add(content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString());
             else if(p.Name.equals("ContentType"))
-                result.put(content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString(), String.class);
+                result.add(content.getPropertyValue(PropertyIds.CONTENT_STREAM_MIME_TYPE).toString());
             else
                 throw new UnsupportedCommandException(p.Name+" Not Supported");
         }
