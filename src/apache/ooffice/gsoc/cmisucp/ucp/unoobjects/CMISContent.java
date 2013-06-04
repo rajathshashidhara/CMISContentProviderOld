@@ -7,6 +7,7 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyExistException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertiesChangeListener;
+import com.sun.star.beans.XPropertySetInfo;
 import com.sun.star.beans.XPropertySetInfoChangeListener;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.NoSupportException;
@@ -138,7 +139,8 @@ public final class CMISContent extends WeakBase
         }
         else if(arg0.Name.equals("getPropertySetInfo"))
         {
-            //to-do
+            XPropertySetInfo xpsi = new CMISXPropertySetInfo(m_xContext);
+            return xpsi;
         }
         else if(arg0.Name.equals("setPropertyValues"))
         {
