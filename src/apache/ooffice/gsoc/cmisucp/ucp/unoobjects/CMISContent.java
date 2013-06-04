@@ -5,6 +5,7 @@ import com.sun.star.beans.IllegalTypeException;
 import com.sun.star.beans.NotRemoveableException;
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyExistException;
+import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertiesChangeListener;
 import com.sun.star.beans.XPropertySetInfo;
@@ -22,10 +23,13 @@ import com.sun.star.ucb.XCommandInfo;
 import com.sun.star.ucb.XCommandInfoChangeListener;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
+import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
@@ -144,7 +148,9 @@ public final class CMISContent extends WeakBase
         }
         else if(arg0.Name.equals("setPropertyValues"))
         {
-            //to-do
+            PropertyValue parameter[];
+            parameter = (PropertyValue[]) AnyConverter.toArray(arg0.Argument);
+            return setProperties(parameter);
         }
         else if(arg0.Name.equals("open"))
         {
@@ -168,6 +174,61 @@ public final class CMISContent extends WeakBase
         return null;
     }
 
+    private Object setProperties(PropertyValue arr[]) throws IllegalArgumentException
+    {
+        connectToRepository();
+        
+        Any result[] = new Any[arr.length];
+        int index = 0;
+        
+        for(PropertyValue p:arr)
+        {
+            if(p.Name.equals("Title"))
+            {
+                Map<String, Object> pr = new HashMap<String, Object>();
+                
+                if(!(p.Value.getClass()==String.class))
+                    result[index] = (Any) AnyConverter.toObject(IllegalTypeException.class, new IllegalTypeException("Property datatype not supported"));
+                pr.put(PropertyIds.NAME,p.Value.toString());
+                content = content.updateProperties(pr);
+            }
+            else if(p.Name.equals("IsFolder"))
+            {
+                //to-do
+            }
+            else if(p.Name.equals("IsDocument"))                
+            {
+                //to-do
+            }
+            else if(p.Name.equals("DateCreated"))      
+            {
+                //to-do
+            }
+            else if(p.Name.equals("DateModified"))               
+            {
+                //to-do
+            }
+            else if(p.Name.equals("Size"))
+            {
+                //to-do
+            }
+            else if(p.Name.equals("MediaType"))
+            {
+                //to-do
+            }
+            else if(p.Name.equals("ContentType"))
+            {
+                //to-do
+            }
+            else
+            {
+                result[index] = (Any) AnyConverter.toObject(UnknownPropertyException.class,new UnknownPropertyException(p.Name+" Property Not Known"));          
+            }
+            index++;
+        }
+        
+        return result;
+    }
     private Object obtainProperties(com.sun.star.beans.Property arr[])throws NullPointerException, UnsupportedCommandException, IllegalArgumentException
     {
         if(session==null)
@@ -186,7 +247,7 @@ public final class CMISContent extends WeakBase
             else if(p.Name.equals("DateCreated"))      
                 result.add(content.getCreationDate().toString());
             else if(p.Name.equals("DateModified"))               
-                result.add(content.getCreationDate().toString());
+                result.add(content.getLastModificationDate().toString());
             else if(p.Name.equals("Size"))
                 result.add(content.getPropertyValue(PropertyIds.CONTENT_STREAM_LENGTH).toString());
             else if(p.Name.equals("MediaType"))
