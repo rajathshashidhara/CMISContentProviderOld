@@ -2,4 +2,6 @@
 <manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">
   <manifest:file-entry manifest:media-type="application/vnd.sun.star.uno-component;type=Java"
                        manifest:full-path="CMISContentProvider.jar"/>
+  <manifest:file-entry manifest:media-type="application/vnd.sun.star.configuration-data"
+                       manifest:full-path="registry/UCB.xcu"/>
 </manifest:manifest>

@@ -3,6 +3,7 @@ package apache.ooffice.gsoc.cmisucp.ucp.unoobjects;
 import apache.ooffice.gsoc.cmisucp.cmis.RepositoryConnect;
 import com.sun.star.beans.IllegalTypeException;
 import com.sun.star.beans.NotRemoveableException;
+import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyExistException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertiesChangeListener;
@@ -20,6 +21,7 @@ import com.sun.star.ucb.XCommandEnvironment;
 import com.sun.star.ucb.XCommandInfoChangeListener;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
+import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
 import com.sun.star.util.Date;
 import java.util.HashMap;
@@ -58,6 +60,7 @@ public final class CMISContent extends WeakBase
     {
         m_xContext = context;
         contentID = xContentIdentifier;
+        generateRelativePath();
     };
 
     // com.sun.star.ucb.XContent:
@@ -84,7 +87,7 @@ public final class CMISContent extends WeakBase
             connectToRepository();
         
             
-        type = content.getType().getDisplayName();
+        type = content.getProperty(PropertyIds.BASE_TYPE_ID).getValueAsString();
         
         return type;
     }
@@ -110,9 +113,11 @@ public final class CMISContent extends WeakBase
     private void generateRelativePath()
     {
         if(contentID.getContentIdentifier().endsWith(".odt"))
-            relative_path = contentID.getContentIdentifier().substring(4, contentID.getContentIdentifier().length()-3);
+            relative_path = contentID.getContentIdentifier().substring(7);
         else
-            relative_path = contentID.getContentIdentifier().substring(4);
+            relative_path = contentID.getContentIdentifier().substring(7);
+        
+        System.out.println(relative_path);
     }
 
     public int createCommandIdentifier() {
@@ -121,13 +126,16 @@ public final class CMISContent extends WeakBase
 
     public Object execute(Command arg0, int arg1, XCommandEnvironment arg2) throws Exception, CommandAbortedException {
          //To change body of generated methods, choose Tools | Templates.
-        
+        System.out.println("InSide Execute");
         if(arg0.Name.equals("getPropertyValues"))
         {
             com.sun.star.beans.Property pRequest[];
-            pRequest = (com.sun.star.beans.Property[]) (arg0.Argument);
+            System.out.println(AnyConverter.isArray(arg0.Argument));
+            pRequest = (Property[]) AnyConverter.toArray(arg0.Argument);
+            //System.out.println(AnyConverter.getType(arg0.Argument).getTypeName());
+            //
             return obtainProperties(pRequest);
-            
+//            return null;
         }
         else if(arg0.Name.equals("getCommandInfo"))
         {
@@ -169,7 +177,7 @@ public final class CMISContent extends WeakBase
         return null;
     }
 
-    private XRow obtainProperties(com.sun.star.beans.Property arr[])throws NullPointerException, UnsupportedCommandException
+    private Object obtainProperties(com.sun.star.beans.Property arr[])throws NullPointerException, UnsupportedCommandException, IllegalArgumentException
     {
         if(session==null)
             connectToRepository();
@@ -197,7 +205,7 @@ public final class CMISContent extends WeakBase
             else
                 throw new UnsupportedCommandException(p.Name+" Not Supported");
         }
-        return new CMISXRow(result);
+        return AnyConverter.toObject(CMISXRow.class, new CMISXRow(result));
     }
     public void abort(int arg0) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
