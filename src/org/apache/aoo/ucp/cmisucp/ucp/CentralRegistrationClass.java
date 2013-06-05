@@ -24,7 +24,7 @@
  * Created on 2013.06.02 - 22:07:44
  *
  */
-package apache.ooffice.gsoc.cmisucp.ucp;
+package org.apache.aoo.ucp.cmisucp.ucp;
 
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;

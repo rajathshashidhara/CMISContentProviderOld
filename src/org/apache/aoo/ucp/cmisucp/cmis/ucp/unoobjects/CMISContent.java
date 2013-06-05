@@ -1,6 +1,26 @@
-package apache.ooffice.gsoc.cmisucp.ucp.unoobjects;
+/**************************************************************
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *************************************************************/
+package org.apache.aoo.ucp.cmisucp.cmis.ucp.unoobjects;
 
-import apache.ooffice.gsoc.cmisucp.cmis.RepositoryConnect;
+import org.apache.aoo.ucp.cmisucp.cmis.RepositoryConnect;
 import com.sun.star.beans.IllegalTypeException;
 import com.sun.star.beans.NotRemoveableException;
 import com.sun.star.beans.Property;
@@ -17,6 +37,7 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.ucb.Command;
 import com.sun.star.ucb.CommandAbortedException;
 import com.sun.star.ucb.ContentInfo;
+import com.sun.star.ucb.OpenCommandArgument2;
 import com.sun.star.ucb.UnsupportedCommandException;
 import com.sun.star.ucb.XCommandEnvironment;
 import com.sun.star.ucb.XCommandInfo;
@@ -155,7 +176,7 @@ public final class CMISContent extends WeakBase
         }
         else if(arg0.Name.equals("open"))
         {
-            //to-do
+            OpenCommandArgument2 open_arg = (OpenCommandArgument2) AnyConverter.toObject(OpenCommandArgument2.class, arg0.Argument);
         }
         else if(arg0.Name.equals("delete"))
         {
