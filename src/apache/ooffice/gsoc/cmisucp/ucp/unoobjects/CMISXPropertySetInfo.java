@@ -44,9 +44,11 @@ public final class CMISXPropertySetInfo extends WeakBase
         
         available_properties[6].Name = "MediaType";
         available_properties[6].Type = Type.STRING;
+        available_properties[6].Attributes = PropertyAttribute.READONLY;
         
         available_properties[7].Name = "ContentType";
         available_properties[7].Type = Type.STRING;
+        available_properties[7].Attributes = PropertyAttribute.READONLY;
     };
 
     // com.sun.star.beans.XPropertySetInfo:

@@ -33,6 +33,7 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 
 
 public final class CMISContent extends WeakBase
@@ -190,7 +191,10 @@ public final class CMISContent extends WeakBase
                 if(!(p.Value.getClass()==String.class))
                     result[index] = (Any) AnyConverter.toObject(IllegalTypeException.class, new IllegalTypeException("Property datatype not supported"));
                 pr.put(PropertyIds.NAME,p.Value.toString());
+ 
                 content = content.updateProperties(pr);
+                result[index] = null;
+                
             }
             else if(p.Name.equals("IsFolder"))
             {
@@ -214,11 +218,11 @@ public final class CMISContent extends WeakBase
             }
             else if(p.Name.equals("MediaType"))
             {
-                //to-do
+                result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else if(p.Name.equals("ContentType"))
             {
-                //to-do
+                result[index] = (Any) AnyConverter.toObject(IllegalAccessException.class, new IllegalAccessException("READONLY PROPERTY"));
             }
             else
             {
