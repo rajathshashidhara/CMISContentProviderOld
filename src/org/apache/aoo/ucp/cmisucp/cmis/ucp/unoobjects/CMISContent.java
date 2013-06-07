@@ -54,7 +54,6 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 
 
 public final class CMISContent extends WeakBase
@@ -75,6 +74,7 @@ public final class CMISContent extends WeakBase
     private String relative_path;
     private Session session;
     private CmisObject content;
+    private boolean isFolder;
     
     /**
      *
@@ -91,21 +91,11 @@ public final class CMISContent extends WeakBase
     // com.sun.star.ucb.XContent:
     public com.sun.star.ucb.XContentIdentifier getIdentifier()
     {
-        // TODO: Exchange the default return implementation for "getIdentifier" !!!
-        // NOTE: Default initialized polymorphic structs can cause problems
-        // because of missing default initialization of primitive types of
-        // some C++ compilers or different Any initialization in Java and C++
-        // polymorphic structs.
         return contentID;
     }
 
     public String getContentType()
     {
-        // TODO: Exchange the default return implementation for "getContentType" !!!
-        // NOTE: Default initialized polymorphic structs can cause problems
-        // because of missing default initialization of primitive types of
-        // some C++ compilers or different Any initialization in Java and C++
-        // polymorphic structs.
         String type;
         
         if(session==null)
@@ -138,9 +128,15 @@ public final class CMISContent extends WeakBase
     private void generateRelativePath()
     {
         if(contentID.getContentIdentifier().endsWith(".odt"))
+        {
             relative_path = contentID.getContentIdentifier().substring(7);
+            isFolder = false;
+        }
         else
+        {   
             relative_path = contentID.getContentIdentifier().substring(7);
+            isFolder = true;
+        }
         
         System.out.println(relative_path);
     }
@@ -177,6 +173,10 @@ public final class CMISContent extends WeakBase
         else if(arg0.Name.equals("open"))
         {
             OpenCommandArgument2 open_arg = (OpenCommandArgument2) AnyConverter.toObject(OpenCommandArgument2.class, arg0.Argument);
+            if(isFolder)
+            {
+                
+            }
         }
         else if(arg0.Name.equals("delete"))
         {
