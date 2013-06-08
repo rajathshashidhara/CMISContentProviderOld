@@ -5,6 +5,8 @@ import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.ComponentBase;
+import com.sun.star.ucb.OpenCommandArgument2;
+import org.apache.chemistry.opencmis.client.api.Session;
 
 
 public final class CMISDynamicResultSet extends ComponentBase
@@ -17,7 +19,7 @@ public final class CMISDynamicResultSet extends ComponentBase
         "com.sun.star.ucb.DynamicResultSet" };
 
 
-    public CMISDynamicResultSet( XComponentContext context )
+    public CMISDynamicResultSet( XComponentContext context, String spath, Session s, OpenCommandArgument2 o )
     {
         m_xContext = context;
     };

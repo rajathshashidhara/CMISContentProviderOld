@@ -6,6 +6,8 @@ import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.PropertySet;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.ucb.OpenCommandArgument2;
+import org.apache.chemistry.opencmis.client.api.Session;
 
 
 public final class CMISResultSet extends PropertySet
@@ -36,7 +38,7 @@ public final class CMISResultSet extends PropertySet
     protected int m_RowCount;
     protected boolean m_IsRowCountFinal;
 
-    public CMISResultSet( XComponentContext context )
+    public CMISResultSet( XComponentContext context, Session s, OpenCommandArgument2 o, String spath )
     {
         m_xContext = context;
         registerProperty("CursorName", "m_CursorName",

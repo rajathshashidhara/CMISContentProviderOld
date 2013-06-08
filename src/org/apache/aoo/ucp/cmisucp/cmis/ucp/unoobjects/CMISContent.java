@@ -86,6 +86,7 @@ public final class CMISContent extends WeakBase
         m_xContext = context;
         contentID = xContentIdentifier;
         generateRelativePath();
+        connectToRepository();
     };
 
     // com.sun.star.ucb.XContent:
@@ -98,10 +99,6 @@ public final class CMISContent extends WeakBase
     {
         String type;
         
-        if(session==null)
-            connectToRepository();
-        
-            
         type = content.getProperty(PropertyIds.BASE_TYPE_ID).getValueAsString();
         
         return type;
@@ -198,7 +195,6 @@ public final class CMISContent extends WeakBase
 
     private Object setProperties(PropertyValue arr[]) throws IllegalArgumentException
     {
-        connectToRepository();
         
         Any result[] = new Any[arr.length];
         int index = 0;
@@ -256,8 +252,6 @@ public final class CMISContent extends WeakBase
     }
     private Object obtainProperties(com.sun.star.beans.Property arr[])throws NullPointerException, UnsupportedCommandException, IllegalArgumentException
     {
-        if(session==null)
-            connectToRepository();
         
         List<String> result = new ArrayList<String>();
                 
