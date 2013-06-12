@@ -8,19 +8,25 @@ import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.PropertySet;
 import com.sun.star.beans.PropertyAttribute;
 import com.sun.star.sdbc.ResultSetType;
+import com.sun.star.sdbc.SQLException;
 import com.sun.star.sdbc.XRow;
 import com.sun.star.ucb.OpenCommandArgument2;
 import com.sun.star.ucb.OpenMode;
 import com.sun.star.ucb.UnsupportedCommandException;
 import com.sun.star.ucb.XContent;
+import com.sun.star.ucb.XContentIdentifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.aoo.ucp.cmisucp.CMISConstants;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.OperationContext;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.PropertyId;
 
 
 public final class CMISResultSet extends PropertySet
@@ -50,19 +56,17 @@ public final class CMISResultSet extends PropertySet
     protected int m_CursorTravelMode;
     protected int m_RowCount;
     protected boolean m_IsRowCountFinal;
+    private String content_identifier;
 
     // private content
     private Session connected;
-    private String content_identifier;
     private OpenCommandArgument2 open_properties;
     private List<XRow> properties_list;
     private CmisObject object_content;
-    private XContent xConObj;
     
-    public CMISResultSet( XComponentContext context, Session s, OpenCommandArgument2 o, String spath, XContent content ) throws UnsupportedCommandException
+    public CMISResultSet( XComponentContext context, Session s, OpenCommandArgument2 o, String spath ) throws UnsupportedCommandException
     {
         m_xContext = context;
-        xConObj = content;
         
         registerProperty("CursorName", "m_CursorName",
               (short)0);
@@ -659,32 +663,42 @@ public final class CMISResultSet extends PropertySet
     // com.sun.star.ucb.XContentAccess:
     public String queryContentIdentifierString()
     {
-        // TODO: Exchange the default return implementation for "queryContentIdentifierString" !!!
-        // NOTE: Default initialized polymorphic structs can cause problems
-        // because of missing default initialization of primitive types of
-        // some C++ compilers or different Any initialization in Java and C++
-        // polymorphic structs.
-        return xConObj.getIdentifier().getContentIdentifier();
+        try {
+            return "cmis://"+connected.getObject(properties_list.get(m_RowCount-1).getString(0)).getPropertyValue(PropertyIds.PATH);
+        } catch (SQLException ex) {
+            Logger.getLogger(CMISResultSet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     public com.sun.star.ucb.XContentIdentifier queryContentIdentifier()
     {
-        // TODO: Exchange the default return implementation for "queryContentIdentifier" !!!
-        // NOTE: Default initialized polymorphic structs can cause problems
-        // because of missing default initialization of primitive types of
-        // some C++ compilers or different Any initialization in Java and C++
-        // polymorphic structs.
-        return xConObj.getIdentifier();
+        try {
+            // TODO: Exchange the default return implementation for "queryContentIdentifier" !!!
+            // NOTE: Default initialized polymorphic structs can cause problems
+            // because of missing default initialization of primitive types of
+            // some C++ compilers or different Any initialization in Java and C++
+            // polymorphic structs.
+            return new CMISContentIdentifier(m_xContext,"cmis://"+connected.getObject(properties_list.get(m_RowCount-1).getString(0)).getPropertyValue(PropertyIds.PATH));
+        } catch (SQLException ex) {
+            Logger.getLogger(CMISResultSet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     public com.sun.star.ucb.XContent queryContent()
     {
-        // TODO: Exchange the default return implementation for "queryContent" !!!
-        // NOTE: Default initialized polymorphic structs can cause problems
-        // because of missing default initialization of primitive types of
-        // some C++ compilers or different Any initialization in Java and C++
-        // polymorphic structs.
-        return xConObj;
+        try {
+            // TODO: Exchange the default return implementation for "queryContent" !!!
+            // NOTE: Default initialized polymorphic structs can cause problems
+            // because of missing default initialization of primitive types of
+            // some C++ compilers or different Any initialization in Java and C++
+            // polymorphic structs.
+           return new CMISContent(m_xContext,new CMISContentIdentifier(m_xContext,"cmis://"+connected.getObject(properties_list.get(m_RowCount-1).getString(0)).getPropertyValue(PropertyIds.PATH)));
+        } catch (SQLException ex) {
+            Logger.getLogger(CMISResultSet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     // com.sun.star.lang.XServiceInfo:
