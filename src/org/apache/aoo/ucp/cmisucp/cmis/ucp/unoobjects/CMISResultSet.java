@@ -1,12 +1,25 @@
 package org.apache.aoo.ucp.cmisucp.cmis.ucp.unoobjects;
 
+import com.sun.star.beans.Property;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.PropertySet;
 import com.sun.star.beans.PropertyAttribute;
+import com.sun.star.sdbc.ResultSetType;
+import com.sun.star.sdbc.XRow;
 import com.sun.star.ucb.OpenCommandArgument2;
+import com.sun.star.ucb.OpenMode;
+import com.sun.star.ucb.UnsupportedCommandException;
+import com.sun.star.ucb.XContent;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.aoo.ucp.cmisucp.CMISConstants;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.OperationContext;
 import org.apache.chemistry.opencmis.client.api.Session;
 
 
@@ -38,9 +51,19 @@ public final class CMISResultSet extends PropertySet
     protected int m_RowCount;
     protected boolean m_IsRowCountFinal;
 
-    public CMISResultSet( XComponentContext context, Session s, OpenCommandArgument2 o, String spath )
+    // private content
+    private Session connected;
+    private String content_identifier;
+    private OpenCommandArgument2 open_properties;
+    private List<XRow> properties_list;
+    private CmisObject object_content;
+    private XContent xConObj;
+    
+    public CMISResultSet( XComponentContext context, Session s, OpenCommandArgument2 o, String spath, XContent content ) throws UnsupportedCommandException
     {
         m_xContext = context;
+        xConObj = content;
+        
         registerProperty("CursorName", "m_CursorName",
               (short)0);
         registerProperty("ResultSetConcurrency", "m_ResultSetConcurrency",
@@ -57,6 +80,17 @@ public final class CMISResultSet extends PropertySet
               (short)(PropertyAttribute.MAYBEVOID|PropertyAttribute.BOUND|PropertyAttribute.MAYBEDEFAULT|PropertyAttribute.REMOVEABLE|PropertyAttribute.OPTIONAL));
         registerProperty("IsRowCountFinal", "m_IsRowCountFinal",
               (short)(PropertyAttribute.MAYBEVOID|PropertyAttribute.BOUND|PropertyAttribute.MAYBEDEFAULT|PropertyAttribute.REMOVEABLE|PropertyAttribute.OPTIONAL));
+        
+        connected = s;
+        content_identifier = spath;
+        open_properties = o;
+        
+        properties_list = new ArrayList<XRow>();
+        object_content = connected.getObjectByPath(content_identifier);
+        fillProperties();
+        m_RowCount = 0;
+        m_ResultSetType = ResultSetType.FORWARD_ONLY;
+        
     };
 
     public static XSingleComponentFactory __getComponentFactory( String sImplementationName ) {
@@ -73,6 +107,93 @@ public final class CMISResultSet extends PropertySet
                                                 xRegistryKey);
     }
 
+    //My methods
+    private void fillProperties() throws UnsupportedCommandException
+    {
+        Folder f = (Folder)object_content;
+        OperationContext oc = connected.createOperationContext();
+        switch(open_properties.Mode)
+        {
+            
+        
+            case OpenMode.DOCUMENTS:
+            {
+                oc.setFilterString("cmis:document");
+                ItemIterable<CmisObject> children = f.getChildren(oc);
+                for(CmisObject o:children)
+                {
+                    List<String> child_properties;                    
+                    child_properties = new ArrayList<String>();
+                    child_properties.add(o.getId());
+                    for(Property p:open_properties.Properties)
+                    {
+                        String prop;
+                    
+                        if(CMISConstants.propertiesHashMap.containsKey(p.Name))
+                        {    
+                            prop = CMISConstants.propertiesHashMap.get(p.Name);
+                            child_properties.add(o.getPropertyValue(prop).toString());                        
+                        }
+                        else
+                            throw new UnsupportedCommandException(p.Name+"is not supported");
+                    }
+                    
+                    XRow r = new CMISXRow(child_properties);
+                    properties_list.add(r);
+                }
+            }
+            case OpenMode.FOLDERS:
+            {
+                oc.setFilterString("cmis:folder");
+                ItemIterable<CmisObject> children = f.getChildren(oc);
+                for(CmisObject o:children)
+                {
+                    List<String> child_properties;
+                    child_properties = new ArrayList<String>();
+                    for(Property p:open_properties.Properties)
+                    {
+                        String prop;
+                    
+                        if(CMISConstants.propertiesHashMap.containsKey(p.Name))
+                        {    
+                            prop = CMISConstants.propertiesHashMap.get(p.Name);
+                            child_properties.add(o.getPropertyValue(prop).toString());                        
+                        }
+                        else
+                            throw new UnsupportedCommandException(p.Name+"is not supported");
+                    }
+                    
+                    XRow r = new CMISXRow(child_properties);
+                    properties_list.add(r);
+                }
+            }
+            default:
+            {
+                ItemIterable<CmisObject> children = f.getChildren();
+                for(CmisObject o:children)
+                {
+                    List<String> child_properties;
+                    child_properties = new ArrayList<String>();
+                    for(Property p:open_properties.Properties)
+                    {
+                        String prop;
+                    
+                        if(CMISConstants.propertiesHashMap.containsKey(p.Name))
+                        {    
+                            prop = CMISConstants.propertiesHashMap.get(p.Name);
+                            child_properties.add(o.getPropertyValue(prop).toString());                        
+                        }
+                        else
+                            throw new UnsupportedCommandException(p.Name+"is not supported");
+                    }
+                    
+                    XRow r = new CMISXRow(child_properties);
+                    properties_list.add(r);
+                }
+            }
+        }
+    }
+    
     // com.sun.star.sdbc.XResultSet:
     public boolean next() throws com.sun.star.sdbc.SQLException
     {
@@ -81,7 +202,17 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        
+        if(m_RowCount<=properties_list.size())
+        {
+            m_RowCount++;
+            if(m_RowCount==properties_list.size())
+                return false;
+            else
+                return true;
+        }
+        else
+            return false;
     }
 
     public boolean isBeforeFirst() throws com.sun.star.sdbc.SQLException
@@ -91,7 +222,10 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        if(m_RowCount==0)
+            return true;
+        else
+            return false;
     }
 
     public boolean isAfterLast() throws com.sun.star.sdbc.SQLException
@@ -101,7 +235,10 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        if(m_RowCount>properties_list.size())
+            return true;
+        else
+            return false;
     }
 
     public boolean isFirst() throws com.sun.star.sdbc.SQLException
@@ -111,7 +248,10 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        if(m_RowCount==1)
+            return true;
+        else
+            return false;
     }
 
     public boolean isLast() throws com.sun.star.sdbc.SQLException
@@ -121,17 +261,22 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        if(m_RowCount==properties_list.size())
+            return true;
+        else
+            return false;
     }
 
     public void beforeFirst() throws com.sun.star.sdbc.SQLException
     {
         // TODO: Insert your implementation for "beforeFirst" here.
+        m_RowCount = 0;
     }
 
     public void afterLast() throws com.sun.star.sdbc.SQLException
     {
         // TODO: Insert your implementation for "afterLast" here.
+        m_RowCount = properties_list.size();
     }
 
     public boolean first() throws com.sun.star.sdbc.SQLException
@@ -141,7 +286,8 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        m_RowCount = 1;
+        return true;
     }
 
     public boolean last() throws com.sun.star.sdbc.SQLException
@@ -151,7 +297,8 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        m_RowCount = properties_list.size();
+        return true;
     }
 
     public int getRow() throws com.sun.star.sdbc.SQLException
@@ -161,7 +308,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return m_RowCount;
     }
 
     public boolean absolute(int row) throws com.sun.star.sdbc.SQLException
@@ -171,7 +318,23 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        if(row>=0)
+            m_RowCount = row;
+        else
+            m_RowCount = properties_list.size()+1+row;
+        
+        if(m_RowCount>properties_list.size())
+        {
+            m_RowCount = properties_list.size()+1;
+            return false;
+        }
+        else if(m_RowCount<0)
+        {
+            m_RowCount = 0;
+            return false;
+        }
+        else
+            return true;
     }
 
     public boolean relative(int rows) throws com.sun.star.sdbc.SQLException
@@ -181,7 +344,19 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        m_RowCount += rows;
+        if(m_RowCount>properties_list.size())
+        {
+            m_RowCount = properties_list.size()+1;
+            return false;
+        }
+        else if(m_RowCount<0)
+        {
+            m_RowCount = 0;
+            return false;
+        }
+        else
+            return true;
     }
 
     public boolean previous() throws com.sun.star.sdbc.SQLException
@@ -191,12 +366,31 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        if(m_RowCount==0)
+            return false;
+        else
+        {
+            m_RowCount -= 1;
+            return true;
+        }
+        
     }
 
     public void refreshRow() throws com.sun.star.sdbc.SQLException
     {
         // TODO: Insert your implementation for "refreshRow" here.
+        String id = getString(0);
+        CmisObject o = connected.getObject(id);
+        List<String> updatedRow = new ArrayList<String>();
+        updatedRow.add(id);
+        for(Property p:open_properties.Properties)
+        {
+            String prop;
+            prop = CMISConstants.propertiesHashMap.get(p.Name);
+            updatedRow.add(o.getPropertyValue(prop).toString());
+        }
+        XRow temp = new CMISXRow(updatedRow);
+        properties_list.set(m_RowCount-1,temp);
     }
 
     public boolean rowUpdated() throws com.sun.star.sdbc.SQLException
@@ -253,7 +447,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        return properties_list.get(m_RowCount-1).wasNull();
     }
 
     public String getString(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -263,7 +457,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return new String();
+        return properties_list.get(m_RowCount-1).getString(columnIndex);
     }
 
     public boolean getBoolean(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -273,7 +467,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return false;
+        return properties_list.get(m_RowCount-1).getBoolean(columnIndex);
     }
 
     public byte getByte(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -283,7 +477,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return properties_list.get(m_RowCount-1).getByte(columnIndex);
     }
 
     public short getShort(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -293,7 +487,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return properties_list.get(m_RowCount-1).getShort(columnIndex);
     }
 
     public int getInt(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -303,7 +497,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return properties_list.get(m_RowCount-1).getInt(columnIndex);
     }
 
     public long getLong(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -313,7 +507,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return properties_list.get(m_RowCount-1).getLong(columnIndex);
     }
 
     public float getFloat(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -323,7 +517,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return properties_list.get(m_RowCount-1).getFloat(columnIndex);
     }
 
     public double getDouble(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -333,7 +527,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        return properties_list.get(m_RowCount-1).getDouble(columnIndex);
     }
 
     public byte[] getBytes(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -343,7 +537,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return new byte[0];
+        return properties_list.get(m_RowCount-1).getBytes(columnIndex);
     }
 
     public com.sun.star.util.Date getDate(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -353,7 +547,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return new com.sun.star.util.Date();
+        return properties_list.get(m_RowCount-1).getDate(columnIndex);
     }
 
     public com.sun.star.util.Time getTime(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -363,7 +557,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return new com.sun.star.util.Time();
+        return properties_list.get(m_RowCount-1).getTime(columnIndex);
     }
 
     public com.sun.star.util.DateTime getTimestamp(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -373,7 +567,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return new com.sun.star.util.DateTime();
+        return properties_list.get(m_RowCount-1).getTimestamp(columnIndex);
     }
 
     public com.sun.star.io.XInputStream getBinaryStream(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -383,7 +577,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return properties_list.get(m_RowCount-1).getBinaryStream(columnIndex);
     }
 
     public com.sun.star.io.XInputStream getCharacterStream(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -393,7 +587,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return properties_list.get(m_RowCount-1).getCharacterStream(columnIndex);
     }
 
     public Object getObject(int columnIndex, com.sun.star.container.XNameAccess typeMap) throws com.sun.star.sdbc.SQLException
@@ -403,7 +597,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return com.sun.star.uno.Any.VOID;
+        return properties_list.get(m_RowCount-1).getObject(columnIndex,null);
     }
 
     public com.sun.star.sdbc.XRef getRef(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -413,7 +607,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return properties_list.get(m_RowCount-1).getRef(columnIndex);
     }
 
     public com.sun.star.sdbc.XBlob getBlob(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -423,7 +617,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return properties_list.get(m_RowCount-1).getBlob(columnIndex);
     }
 
     public com.sun.star.sdbc.XClob getClob(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -433,7 +627,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return properties_list.get(m_RowCount-1).getClob(columnIndex);
     }
 
     public com.sun.star.sdbc.XArray getArray(int columnIndex) throws com.sun.star.sdbc.SQLException
@@ -443,7 +637,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return properties_list.get(m_RowCount-1).getArray(columnIndex);
     }
 
     // com.sun.star.sdbc.XColumnLocate:
@@ -454,7 +648,12 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return 0;
+        for(int i=0;i<open_properties.Properties.length;i++)
+        {
+            if(open_properties.Properties[i].Name.equalsIgnoreCase(columnName))
+                return i;
+        }
+        return -1;
     }
 
     // com.sun.star.ucb.XContentAccess:
@@ -465,7 +664,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return new String();
+        return xConObj.getIdentifier().getContentIdentifier();
     }
 
     public com.sun.star.ucb.XContentIdentifier queryContentIdentifier()
@@ -475,7 +674,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return xConObj.getIdentifier();
     }
 
     public com.sun.star.ucb.XContent queryContent()
@@ -485,7 +684,7 @@ public final class CMISResultSet extends PropertySet
         // because of missing default initialization of primitive types of
         // some C++ compilers or different Any initialization in Java and C++
         // polymorphic structs.
-        return null;
+        return xConObj;
     }
 
     // com.sun.star.lang.XServiceInfo:

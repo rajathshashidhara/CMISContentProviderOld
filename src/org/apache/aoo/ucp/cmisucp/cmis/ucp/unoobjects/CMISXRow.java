@@ -43,7 +43,6 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     //private Set<String> ans;
     private List<String> ans;
     private static int lastArg;
-    private static boolean lastWasNull = true;
     
     CMISXRow(List<String> result) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -52,12 +51,22 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     
     public boolean wasNull() throws SQLException {
       //  throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        return lastWasNull;
+        try
+        {
+            if(ans.get(lastArg)==null)
+                return true;
+            else
+                return false;
+        }
+        catch(IndexOutOfBoundsException e)
+        {
+            return true;            
+        }
     }
 
     public String getString(int arg0) throws SQLException {
       //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-      lastArg = arg0-1;
+      lastArg = arg0;
       
       return ans.get(lastArg);
       //else
@@ -66,7 +75,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public boolean getBoolean(int arg0) throws SQLException {
-      lastArg = arg0-1;  
+      lastArg = arg0;  
       try
       {
           boolean b = Boolean.valueOf(ans.get(lastArg)).booleanValue();
@@ -80,7 +89,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public byte getByte(int arg0) throws SQLException {
-        lastArg = arg0-1;  
+        lastArg = arg0;  
         try
         {
             byte b;
@@ -94,7 +103,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public short getShort(int arg0) throws SQLException {
-        lastArg = arg0-1;  
+        lastArg = arg0;  
         try
         {
             short b = Short.valueOf(ans.get(lastArg)).shortValue();
@@ -109,7 +118,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     public int getInt(int arg0) throws SQLException {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         
-        lastArg = arg0-1;  
+        lastArg = arg0;  
         try
         {
             int b = Integer.valueOf(ans.get(lastArg)).intValue();
@@ -123,7 +132,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public long getLong(int arg0) throws SQLException {
-        lastArg = arg0-1;  
+        lastArg = arg0;  
         try
         {
             long b;
@@ -137,7 +146,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public float getFloat(int arg0) throws SQLException {
-        lastArg = arg0-1;  
+        lastArg = arg0;  
         try
         {
             float b = Float.valueOf(ans.get(lastArg)).floatValue();
@@ -150,7 +159,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public double getDouble(int arg0) throws SQLException {
-        lastArg = arg0-1;  
+        lastArg = arg0;  
         try
         {
             int b = Integer.valueOf(ans.get(lastArg)).intValue();
@@ -167,7 +176,7 @@ public class CMISXRow implements com.sun.star.sdbc.XRow{
     }
 
     public Date getDate(int arg0) throws SQLException {
-        lastArg = arg0-1;
+        lastArg = arg0;
         String s = ans.get(lastArg);
         if(!s.startsWith("java.util.GregorianCalendar"))
             throw new UnsupportedOperationException("Datatype Mismatch");

@@ -254,7 +254,7 @@ public final class CMISContent extends WeakBase
     {
         
         List<String> result = new ArrayList<String>();
-                
+        result.add(content.getId());
         for(com.sun.star.beans.Property p:arr)
         {
             if(p.Name.equals("Title"))

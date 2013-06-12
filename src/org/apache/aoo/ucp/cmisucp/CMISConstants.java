@@ -7,7 +7,6 @@ package org.apache.aoo.ucp.cmisucp;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 
 /**
@@ -15,7 +14,7 @@ import org.apache.chemistry.opencmis.commons.PropertyIds;
  * @author rajath
  */
 public class CMISConstants {
-    private static final Map<String,String> propertiesHashMap;
+    public static final Map<String,String> propertiesHashMap;
     static
     {
         Map<String,String> tempMap = new HashMap<String, String>();
