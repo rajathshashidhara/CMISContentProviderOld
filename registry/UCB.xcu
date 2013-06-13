@@ -26,9 +26,9 @@
             <node oor:name="SecondaryKeys">
                 <node oor:name="Office" oor:op="fuse">
                     <node oor:name="ProviderData">
-                        <node oor:name="apache.ooffice.gsoc.cmisucp.ucp.CMISContentProvider" oor:op="replace">
+                        <node oor:name="org.apache.aoo.ucp.cmisucp.ucp.CMISContentProvider" oor:op="replace">
                             <prop oor:name="ServiceName">
-                                <value>apache.ooffice.gsoc.cmisucp.ucp.CMISContentProvider</value>
+                                <value>org.apache.aoo.ucp.cmisucp.ucp.CMISContentProvider</value>
                             </prop>
                             <prop oor:name="URLTemplate">
                                 <value>cmis</value>

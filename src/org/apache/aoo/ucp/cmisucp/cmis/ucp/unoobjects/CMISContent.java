@@ -54,6 +54,7 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 
 
 public final class CMISContent extends WeakBase
@@ -260,9 +261,9 @@ public final class CMISContent extends WeakBase
             if(p.Name.equals("Title"))
                 result.add(content.getName());
             else if(p.Name.equals("IsFolder"))
-                result.add(content.getType().getDisplayName().equals("cmis:folder")?"True":"False");
+                result.add(content.getBaseTypeId().value().equals(BaseTypeId.CMIS_FOLDER)?"True":"False");
             else if(p.Name.equals("IsDocument"))                
-                result.add(content.getType().getDisplayName().equals("openDocument")?"True":"False");
+                result.add(content.getBaseTypeId().value().equals(BaseTypeId.CMIS_DOCUMENT)?"True":"False");
             else if(p.Name.equals("DateCreated"))      
                 result.add(content.getCreationDate().toString());
             else if(p.Name.equals("DateModified"))               

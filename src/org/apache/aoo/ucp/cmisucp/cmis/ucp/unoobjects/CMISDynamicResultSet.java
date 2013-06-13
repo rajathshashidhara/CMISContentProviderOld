@@ -6,6 +6,9 @@ import com.sun.star.lang.XSingleComponentFactory;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.lib.uno.helper.ComponentBase;
 import com.sun.star.ucb.OpenCommandArgument2;
+import com.sun.star.ucb.UnsupportedCommandException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.chemistry.opencmis.client.api.Session;
 
 
@@ -17,11 +20,16 @@ public final class CMISDynamicResultSet extends ComponentBase
     private static final String m_implementationName = CMISDynamicResultSet.class.getName();
     private static final String[] m_serviceNames = {
         "com.sun.star.ucb.DynamicResultSet" };
-
+    private String path;
+    private Session connected;
+    private OpenCommandArgument2 openArg;
 
     public CMISDynamicResultSet( XComponentContext context, String spath, Session s, OpenCommandArgument2 o )
     {
         m_xContext = context;
+        path = spath;
+        connected = s;
+        openArg = o;
     };
 
     public static XSingleComponentFactory __getComponentFactory( String sImplementationName ) {
@@ -41,11 +49,16 @@ public final class CMISDynamicResultSet extends ComponentBase
     // com.sun.star.ucb.XDynamicResultSet:
     public com.sun.star.sdbc.XResultSet getStaticResultSet() throws com.sun.star.ucb.ListenerAlreadySetException
     {
-        // TODO: Exchange the default return implementation for "getStaticResultSet" !!!
-        // NOTE: Default initialized polymorphic structs can cause problems
-        // because of missing default initialization of primitive types of
-        // some C++ compilers or different Any initialization in Java and C++
-        // polymorphic structs.
+        try {
+            // TODO: Exchange the default return implementation for "getStaticResultSet" !!!
+            // NOTE: Default initialized polymorphic structs can cause problems
+            // because of missing default initialization of primitive types of
+            // some C++ compilers or different Any initialization in Java and C++
+            // polymorphic structs.
+            return new CMISResultSet(m_xContext,connected,openArg,path);
+        } catch (UnsupportedCommandException ex) {
+            Logger.getLogger(CMISDynamicResultSet.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return null;
     }
 
