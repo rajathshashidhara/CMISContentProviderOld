@@ -44,6 +44,7 @@ import com.sun.star.ucb.XCommandInfo;
 import com.sun.star.ucb.XCommandInfoChangeListener;
 import com.sun.star.ucb.XContent;
 import com.sun.star.ucb.XContentIdentifier;
+import com.sun.star.ucb.XDynamicResultSet;
 import com.sun.star.uno.Any;
 import com.sun.star.uno.AnyConverter;
 import com.sun.star.uno.Exception;
@@ -173,7 +174,9 @@ public final class CMISContent extends WeakBase
             OpenCommandArgument2 open_arg = (OpenCommandArgument2) AnyConverter.toObject(OpenCommandArgument2.class, arg0.Argument);
             if(isFolder)
             {
-                
+                XDynamicResultSet xDynamicResultSet = new CMISDynamicResultSet(m_xContext, relative_path, session, open_arg);
+                Any obj = (Any) AnyConverter.toObject(XDynamicResultSet.class, xDynamicResultSet);
+                return obj;
             }
         }
         else if(arg0.Name.equals("delete"))
